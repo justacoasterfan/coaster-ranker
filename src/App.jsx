@@ -2,17 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Trophy, Swords, Database, Plus, Trash2, UserCircle, Download, Upload } from 'lucide-react';
 
 export default function App() {
-  // Automatically inject Tailwind CSS CDN so styling works on GitHub Pages without manual setup
-  useEffect(() => {
-    if (!document.getElementById('tailwind-cdn')) {
-      const script = document.createElement('script');
-      script.id = 'tailwind-cdn';
-      script.src = 'https://cdn.tailwindcss.com';
-      document.head.appendChild(script);
-    }
-  }, []);
-
-  // Load profiles from LocalStorage or initialize default empty profile
+  // Load profiles from LocalStorage or initialize default
   const [profiles, setProfiles] = useState(() => {
     const saved = localStorage.getItem('coasterProfiles');
     return saved ? JSON.parse(saved) : { 'My Rankings': [] };
