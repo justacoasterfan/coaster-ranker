@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/coaster-ranker/static/css/main.e6c13ad2.css",
+    "main.js": "/coaster-ranker/static/js/main.8e50811d.js",
+    "static/js/453.e7185ebf.chunk.js": "/coaster-ranker/static/js/453.e7185ebf.chunk.js",
+    "index.html": "/coaster-ranker/index.html",
+    "main.e6c13ad2.css.map": "/coaster-ranker/static/css/main.e6c13ad2.css.map",
+    "main.8e50811d.js.map": "/coaster-ranker/static/js/main.8e50811d.js.map",
+    "453.e7185ebf.chunk.js.map": "/coaster-ranker/static/js/453.e7185ebf.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.8e50811d.js"
+  ]
+}
