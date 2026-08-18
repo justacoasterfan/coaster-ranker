@@ -1,7 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Trophy, Swords, Database, Plus, Trash2, UserCircle, Download, Upload } from 'lucide-react';
 
 export default function App() {
+  // Automatically inject Tailwind CSS CDN so styling works on GitHub Pages without manual setup
+  useEffect(() => {
+    if (!document.getElementById('tailwind-cdn')) {
+      const script = document.createElement('script');
+      script.id = 'tailwind-cdn';
+      script.src = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(script);
+    }
+  }, []);
+
   // Load profiles from LocalStorage or initialize default empty profile
   const [profiles, setProfiles] = useState(() => {
     const saved = localStorage.getItem('coasterProfiles');
@@ -173,7 +183,7 @@ export default function App() {
     if (coasters.length < 2) return null;
 
     let a, b;
-    // PRIORITY 1: Focus heavily on new additions (< 5 matches) so they find their place quickly
+    // PRIORITY 1: Focus heavily on new additions or coasters with < 5 matches so they find their place quickly
     const newCoasters = coasters.filter(c => (c.matches || 0) < 5);
 
     if (newCoasters.length > 0) {
@@ -431,7 +441,7 @@ export default function App() {
                     <input 
                       type="text" required
                       value={singleName} onChange={e => setSingleName(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-sky-500"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-sky-500 text-white"
                       placeholder="e.g. Iron Gwazi"
                     />
                   </div>
@@ -440,7 +450,7 @@ export default function App() {
                     <input 
                       type="text" required
                       value={singlePark} onChange={e => setSinglePark(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-sky-500"
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-sky-500 text-white"
                       placeholder="e.g. Busch Gardens Tampa"
                     />
                   </div>
@@ -455,7 +465,7 @@ export default function App() {
                   <Database className="w-5 h-5 text-sky-400" /> Import from Captain Coaster
                 </h2>
                 <div className="text-sm text-slate-400 mb-4 space-y-2">
-                  <p><strong>Step 1:</strong> On Captain Coaster, click the "Coaster" column header to sort alphabetically.</p>
+                  <p><strong>Step 1:</strong> On Captain Coaster, click the <strong>"Coaster" column header</strong> to sort alphabetically (prevents skipped pages).</p>
                   <p><strong>Step 2:</strong> View Page Source on each page, copy the HTML, and paste below.</p>
                 </div>
                 <textarea 
