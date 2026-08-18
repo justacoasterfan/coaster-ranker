@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Trophy, Swords, Database, Plus, Trash2, UserCircle, Download, Upload } from 'lucide-react';
 
 export default function App() {
-  // Load profiles from LocalStorage or initialize default
+  // Load profiles from LocalStorage or initialize default empty profile
   const [profiles, setProfiles] = useState(() => {
     const saved = localStorage.getItem('coasterProfiles');
     return saved ? JSON.parse(saved) : { 'My Rankings': [] };
@@ -21,8 +21,7 @@ export default function App() {
   const [singleName, setSingleName] = useState('');
   const [singlePark, setSinglePark] = useState('');
 
-  // The coasters for the currently selected profile
-  const coasters = profiles[activeProfile] || [];
+  const coasters = useMemo(() => profiles[activeProfile] || [], [profiles, activeProfile]);
 
   // Update current profile and save to LocalStorage automatically
   const updateCoasters = (newCoasters) => {
@@ -116,9 +115,8 @@ export default function App() {
 
         if (nameEl && parkEl) {
           const name = nameEl.textContent.trim();
-          // Extract text and strip out the span tags inside the park cell
           let park = parkEl.textContent.trim();
-          park = park.replace(/^[\s\S]*?(?=[a-zA-Z0-9])/, ''); // clean leading spaces/hidden spans
+          park = park.replace(/^[\s\S]*?(?=[a-zA-Z0-9])/, '');
 
           if (!currentNames.has(name.toLowerCase())) {
             newCoasters.push({
@@ -175,20 +173,17 @@ export default function App() {
     if (coasters.length < 2) return null;
 
     let a, b;
-    // PRIORITY 1: Find coasters with less than 5 matches (New Additions)
+    // PRIORITY 1: Focus heavily on new additions (< 5 matches) so they find their place quickly
     const newCoasters = coasters.filter(c => (c.matches || 0) < 5);
 
     if (newCoasters.length > 0) {
-      // Pick an unranked/new coaster as Coaster A
       a = newCoasters[Math.floor(Math.random() * newCoasters.length)];
-      // Match it with the closest Elo opponent to quickly zero in on its real rank
       const others = coasters.filter(c => c.id !== a.id);
       b = others.reduce((closest, curr) => Math.abs(curr.elo - a.elo) < Math.abs(closest.elo - a.elo) ? curr : closest);
     } else {
-      // PRIORITY 2: Core Matchmaking (Top 15% precise ranking vs general distribution)
+      // PRIORITY 2: Focus on Top 10 precision (Top 15% tier) vs general distribution
       const rand = Math.random();
-      if (rand < 0.4) {
-        // 40% chance: Aggressively pit Top 15% coasters against each other
+      if (rand < 0.5) {
         const sorted = [...coasters].sort((x, y) => y.elo - x.elo);
         const topCount = Math.max(2, Math.floor(sorted.length * 0.15));
         const topTier = sorted.slice(0, topCount);
@@ -197,20 +192,12 @@ export default function App() {
         const others = coasters.filter(c => c.id !== a.id);
         b = others.reduce((closest, curr) => Math.abs(curr.elo - a.elo) < Math.abs(closest.elo - a.elo) ? curr : closest);
       } else {
-        // 60% chance: Pick a totally random coaster
         a = coasters[Math.floor(Math.random() * coasters.length)];
         const others = coasters.filter(c => c.id !== a.id);
-        
-        // 50/50 mix between closest skill level vs entirely random opponent
-        if (Math.random() < 0.5) {
-          b = others.reduce((closest, curr) => Math.abs(curr.elo - a.elo) < Math.abs(closest.elo - a.elo) ? curr : closest);
-        } else {
-          b = others[Math.floor(Math.random() * others.length)];
-        }
+        b = others[Math.floor(Math.random() * others.length)];
       }
     }
 
-    // Shuffle A and B so the "better" one isn't always on the left
     return Math.random() > 0.5 ? [a, b] : [b, a];
   };
 
@@ -247,7 +234,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans">
-      {/* Header */}
       <header className="bg-slate-800 border-b border-slate-700 shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-2xl font-bold text-sky-400">
@@ -278,10 +264,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        
-        {/* DUEL TAB */}
         {activeTab === 'duel' && (
           <div className="flex flex-col items-center justify-center min-h-[60vh]">
             {coasters.length < 2 ? (
@@ -297,15 +280,12 @@ export default function App() {
               <div className="w-full">
                 <h2 className="text-center text-3xl font-bold mb-8 text-slate-300">Which is better?</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-                  
-                  {/* VS Badge */}
                   <div className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none z-10">
                     <div className="bg-slate-900 border-4 border-slate-800 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-black text-sky-500 shadow-2xl">
                       VS
                     </div>
                   </div>
 
-                  {/* Coaster A */}
                   <button 
                     onClick={() => handleVote(currentMatch[0].id)}
                     className="group relative h-64 bg-slate-800 border-2 border-slate-700 hover:border-sky-500 hover:bg-slate-750 rounded-2xl p-6 flex flex-col items-center justify-center transition-all overflow-hidden shadow-xl"
@@ -319,7 +299,6 @@ export default function App() {
                     </p>
                   </button>
 
-                  {/* Coaster B */}
                   <button 
                     onClick={() => handleVote(currentMatch[1].id)}
                     className="group relative h-64 bg-slate-800 border-2 border-slate-700 hover:border-sky-500 hover:bg-slate-750 rounded-2xl p-6 flex flex-col items-center justify-center transition-all overflow-hidden shadow-xl"
@@ -341,7 +320,6 @@ export default function App() {
           </div>
         )}
 
-        {/* RANKINGS TAB */}
         {activeTab === 'rankings' && (
           <div className="bg-slate-800 rounded-xl border border-slate-700 shadow-xl overflow-hidden">
             <div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
@@ -385,11 +363,8 @@ export default function App() {
           </div>
         )}
 
-        {/* DATA & SYNC TAB */}
         {activeTab === 'data' && (
           <div className="space-y-6">
-            
-            {/* Global Status Message */}
             {importStatus && (
               <div className="p-4 bg-slate-700 border border-slate-600 rounded-lg flex items-center justify-between">
                 <span className="text-sky-300 font-medium">{importStatus}</span>
@@ -397,7 +372,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Profile Management Section */}
             <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
               <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
                 <UserCircle className="w-5 h-5 text-sky-400" /> User Profiles
@@ -423,13 +397,12 @@ export default function App() {
               </div>
             </div>
 
-            {/* Backup and Restore */}
             <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
               <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-emerald-400">
                 <Database className="w-5 h-5" /> Local Save & Backup
               </h2>
               <p className="text-sm text-slate-400 mb-6">
-                Your data saves automatically to your browser, but if you clear your cache, it will be lost. Use these tools to download a permanent backup file to your computer.
+                Your data saves automatically to your browser. Use these tools to download a backup file to your computer.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
@@ -448,7 +421,6 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Add Single Coaster */}
               <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl flex flex-col">
                 <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
                   <Plus className="w-5 h-5 text-sky-400" /> Add Single Coaster
@@ -478,15 +450,13 @@ export default function App() {
                 </form>
               </div>
 
-              {/* Bulk Captain Coaster Import */}
               <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl flex flex-col">
                 <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
                   <Database className="w-5 h-5 text-sky-400" /> Import from Captain Coaster
                 </h2>
                 <div className="text-sm text-slate-400 mb-4 space-y-2">
-                  <p><strong>Step 1:</strong> Go to your Ratings page on Captain Coaster.</p>
-                  <p className="text-amber-400 font-semibold">Step 2: Click the "Coaster" column header to sort alphabetically (prevents skipped pages bug).</p>
-                  <p><strong>Step 3:</strong> Right click anywhere, select "View Page Source", copy all text, and paste below. Repeat for each page.</p>
+                  <p><strong>Step 1:</strong> On Captain Coaster, click the "Coaster" column header to sort alphabetically.</p>
+                  <p><strong>Step 2:</strong> View Page Source on each page, copy the HTML, and paste below.</p>
                 </div>
                 <textarea 
                   className="w-full h-32 bg-slate-900 border border-slate-700 text-slate-300 rounded-lg p-3 focus:outline-none focus:border-sky-500 resize-none font-mono text-xs mb-4"
@@ -504,7 +474,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Clear Data Danger Zone */}
             <div className="bg-slate-900/50 rounded-xl p-6 border border-red-900/30">
               <div className="flex items-center justify-between">
                 <div>
@@ -525,7 +494,6 @@ export default function App() {
                 </button>
               </div>
             </div>
-
           </div>
         )}
       </main>
